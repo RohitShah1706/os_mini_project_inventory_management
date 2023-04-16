@@ -1,0 +1,11 @@
+ordersFile
+productsFile
+usersFile
+*.out
+*.log
+.vscode
+*.pdf
+*.zip
+*.tar.gz
+client
+server

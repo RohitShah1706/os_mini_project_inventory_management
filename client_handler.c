@@ -1,0 +1,96 @@
+#include "client_handler.h"
+
+#include <stdlib.h>
+
+void signUp(int sockfd)
+{
+    // ! send signup request to server
+    struct User user;
+    printf("Enter email with no spaces: ");
+    scanf("%s", user.email);
+    printf("Enter password with no spaces: ");
+    scanf("%s", user.password);
+    printf("Enter age: ");
+    scanf("%d", &user.age);
+    printf("Enter phone number: ");
+    scanf("%s", user.phoneNo);
+    printf("Enter address: ");
+    scanf("%s", user.address);
+
+    // ! send user to server
+    int status = write(sockfd, &user, sizeof(user));
+    if (status < 0)
+    {
+        printf("Error in sending user\n");
+        exit(1);
+    }
+    receiveMessage(sockfd);
+}
+
+bool login(int sockfd)
+{
+    bool isLoggedIn = false;
+    struct User user;
+    printf("Enter email with no spaces: ");
+    scanf("%s", user.email);
+    printf("Enter password with no spaces: ");
+    scanf("%s", user.password);
+
+    // ! send user to server
+    int status = write(sockfd, &user, sizeof(user));
+    if (status < 0)
+    {
+        printf("Error in sending user\n");
+        exit(1);
+    }
+    if (read(sockfd, &isLoggedIn, sizeof(isLoggedIn)) < 0)
+    {
+        printf("Error in reading login status\n");
+        exit(1);
+    }
+    return isLoggedIn;
+}
+
+void handleServerConnection(int sockfd)
+{
+    // ! first handle login / signup
+    int choice;
+    while (1)
+    {
+        printf("1. Sign up\n");
+        printf("2. Login\n");
+        printf("3. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+        if (write(sockfd, &choice, sizeof(choice)) < 0)
+        {
+            printf("Error in sending choice\n");
+            exit(1);
+        }
+        switch (choice)
+        {
+        case 1:
+            signUp(sockfd);
+            break;
+        case 2:
+            if (!login(sockfd))
+            {
+                printf("Wrong password\n");
+            }
+            else
+            {
+                // TODO - check for isAdmin
+                printf("Login successful\n");
+            }
+            break;
+        case 3:
+            break;
+        default:
+            break;
+        }
+        if (choice == 3)
+        {
+            break;
+        }
+    }
+}
