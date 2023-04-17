@@ -55,11 +55,18 @@ void handleServerConnection(int sockfd)
 {
     // ! first handle login / signup
     int choice;
+    bool isLoggedIn = false;
+    bool isAdmin = false;
+    struct User user;
     while (1)
     {
+        if (isLoggedIn)
+        {
+            showUserMenu(sockfd, &user, &isLoggedIn, &isAdmin);
+        }
+        printf("0. Exit\n");
         printf("1. Sign up\n");
         printf("2. Login\n");
-        printf("3. Exit\n");
         printf("Enter choice: ");
         scanf("%d", &choice);
         if (write(sockfd, &choice, sizeof(choice)) < 0)
@@ -80,15 +87,22 @@ void handleServerConnection(int sockfd)
             else
             {
                 // TODO - check for isAdmin
+                if (read(sockfd, &user, sizeof(user)) < 0)
+                {
+                    printf("Error in reading user details\n");
+                    exit(1);
+                }
+                isLoggedIn = true;
+                isAdmin = user.isAdmin;
                 printf("Login successful\n");
             }
             break;
-        case 3:
+        case 0:
             break;
         default:
             break;
         }
-        if (choice == 3)
+        if (choice == 0)
         {
             break;
         }

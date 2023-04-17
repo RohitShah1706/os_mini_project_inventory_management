@@ -1,8 +1,7 @@
 #ifndef CLIENT_HANDLER_H
 #define CLIENT_HANDLER_H
 
-#include "data.h"
-#include "messager.h"
+#include "client_controller.h"
 
 #include <stdbool.h>
 #include <stdio.h>

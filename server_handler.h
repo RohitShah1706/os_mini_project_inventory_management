@@ -1,8 +1,7 @@
 #ifndef SERVER_HANDLER_H
 #define SERVER_HANDLER_H
 
-#include "data.h"
-#include "messager.h"
+#include "server_controller.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -11,7 +10,6 @@
 
 char response[100];
 
-int openFile(char *fileName, int flags);
 bool checkLogin(struct User *user);
 bool handleSignUp(int clientSocket);
 bool handleLogin(int clientSocket, struct User *user);

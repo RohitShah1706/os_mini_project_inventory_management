@@ -1,19 +1,7 @@
 #include "server_handler.h"
 
-int openFile(char *fileName, int flags)
-{
-    int fd = open(fileName, flags);
-    if (fd < 0)
-    {
-        printf("Error in opening file\n");
-        exit(1);
-    }
-    return fd;
-}
-
 bool checkLogin(struct User *user)
 {
-    // TODO - check for correct login
     bool isLoggedIn = false;
 
     int fd = openFile(USERS_FILENAME, O_RDWR);
@@ -24,6 +12,11 @@ bool checkLogin(struct User *user)
         if (strcmp(tempUser.email, user->email) == 0 && strcmp(tempUser.password, user->password) == 0)
         {
             isLoggedIn = true;
+            user->userId = tempUser.userId;
+            user->isAdmin = tempUser.isAdmin;
+            strcpy(user->address, tempUser.address);
+            user->age = tempUser.age;
+            strcpy(user->phoneNo, tempUser.phoneNo);
             break;
         }
     }
@@ -52,14 +45,13 @@ bool handleSignUp(int clientSocket)
 {
     struct User user;
     int status = read(clientSocket, &user, sizeof(user));
-    user.isAdmin = false;
     if (status < 0)
     {
         printf("Error in reading user\n");
         return false;
     }
+    user.isAdmin = false;
     printf("User received: %s\n", user.email);
-    // TODO - save received user
     return doSignUp(&user);
 }
 
@@ -109,6 +101,17 @@ void *handleClientConnection(void *arg)
             {
                 printf("Error in writing login status\n");
                 exit(1);
+            }
+            if (isLoggedIn)
+            {
+                // ! send user details
+                if (write(clientSocket, &user, sizeof(user)) < 0)
+                {
+                    printf("Error in writing user details\n");
+                    exit(1);
+                }
+                // ! switch to handleUserMenu
+                handleUserMenu(clientSocket, &user);
             }
             break;
         case 3:
