@@ -111,12 +111,34 @@ void updateProduct(int sockfd)
     printf("Product category: %s\n", product.category);
     printf("Product quantity: %d\n", product.quantityAvailable);
     printf("Product price: %f\n", product.price);
+    if (product.isDeleted == false)
+    {
+        printf("Product isDeleted: 0\n");
+    }
+    else
+    {
+        printf("Product isDeleted: 1\n");
+    }
     printf("\n");
 
     int status = write(sockfd, &product, sizeof(product));
     if (status < 0)
     {
         printf("Error in sending product\n");
+        exit(1);
+    }
+    receiveMessage(sockfd);
+}
+
+void deleteProduct(int sockfd)
+{
+    int productId;
+    printf("Enter product id: ");
+    scanf("%d", &productId);
+    int status = write(sockfd, &productId, sizeof(productId));
+    if (status < 0)
+    {
+        printf("Error in sending product id\n");
         exit(1);
     }
     receiveMessage(sockfd);
@@ -134,6 +156,7 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
             printf("6. Add a product\n");
             printf("7. See all products\n");
             printf("8. Update a product\n");
+            printf("9. Delete a product\n");
         }
         printf("Enter your choice: ");
         scanf("%d", &choice);
@@ -176,6 +199,16 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
             if (*isAdmin == true)
             {
                 updateProduct(sockfd);
+            }
+            else
+            {
+                printf("Not an admin\n");
+            }
+            break;
+        case 9:
+            if (*isAdmin == true)
+            {
+                deleteProduct(sockfd);
             }
             else
             {

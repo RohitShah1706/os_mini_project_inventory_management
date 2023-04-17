@@ -25,6 +25,7 @@ struct Product
     char name[100];
     char category[100];
     int quantityAvailable;
+    bool isDeleted;
     float price;
 };
 

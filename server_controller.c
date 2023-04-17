@@ -25,7 +25,7 @@ bool addProduct(struct Product *product)
     struct Product tempProduct;
     while (read(fd, &tempProduct, sizeof(tempProduct)) > 0)
     {
-        if (strcmp(tempProduct.name, product->name) == 0)
+        if (strcmp(tempProduct.name, product->name) == 0 && tempProduct.isDeleted == false)
         {
             close(fd);
             return false;
@@ -37,6 +37,7 @@ bool addProduct(struct Product *product)
     // ! write product
     lseek(fd, 0, SEEK_END);
     product->productId = nProducts;
+    product->isDeleted = false;
     write(fd, product, sizeof(*product));
     printf("Product added: %s\n", product->name);
     close(fd);
@@ -53,12 +54,15 @@ void showAllProducts(int clientSocket)
     printf("Sending all products now\n");
     while (read(fd, &product, sizeof(product)) > 0)
     {
-        printf("Product details: %s\n", product.name);
-        if (write(clientSocket, &product, sizeof(product)) < 0)
+        if (product.isDeleted == false)
         {
-            printf("Error in sending product\n");
-            close(fd);
-            exit(1);
+            printf("Product details: %s\n", product.name);
+            if (write(clientSocket, &product, sizeof(product)) < 0)
+            {
+                printf("Error in sending product\n");
+                close(fd);
+                exit(1);
+            }
         }
     }
     struct Product emptyProduct;
@@ -88,7 +92,7 @@ bool updateProduct(int clientSocket)
     struct Product tempProduct;
     while (read(fd, &tempProduct, sizeof(tempProduct)) > 0)
     {
-        if (tempProduct.productId == product.productId)
+        if (tempProduct.productId == product.productId && tempProduct.isDeleted == false)
         {
             struct Product updatedProductDetails;
             if (strcmp(product.name, "") != 0)
@@ -125,6 +129,34 @@ bool updateProduct(int clientSocket)
             }
             lseek(fd, -sizeof(updatedProductDetails), SEEK_CUR);
             write(fd, &updatedProductDetails, sizeof(updatedProductDetails));
+            close(fd);
+            return true;
+        }
+    }
+    close(fd);
+    return false;
+}
+
+bool deleteProduct(int clientSocket)
+{
+    int productId;
+    if (read(clientSocket, &productId, sizeof(productId)) < 0)
+    {
+        printf("Error in reading product id\n");
+        exit(1);
+    }
+    int fd = openFile(PRODUCTS_FILENAME, O_RDWR);
+    lseek(fd, 0, SEEK_SET);
+    int nProducts;
+    read(fd, &nProducts, sizeof(nProducts));
+    struct Product tempProduct;
+    while (read(fd, &tempProduct, sizeof(tempProduct)) > 0)
+    {
+        if (tempProduct.productId == productId && tempProduct.isDeleted == false)
+        {
+            tempProduct.isDeleted = true;
+            lseek(fd, -sizeof(tempProduct), SEEK_CUR);
+            write(fd, &tempProduct, sizeof(tempProduct));
             close(fd);
             return true;
         }
@@ -191,6 +223,24 @@ void handleUserMenu(int clientSocket, struct User *user)
                 else
                 {
                     sendMessage(clientSocket, "Error in updating product");
+                }
+            }
+            else
+            {
+                sendMessage(clientSocket, "Not an admin");
+            }
+            break;
+        case 9:
+            // ! delete a product with id
+            if (isAdmin == true)
+            {
+                if (deleteProduct(clientSocket))
+                {
+                    sendMessage(clientSocket, "Product deleted successfully");
+                }
+                else
+                {
+                    sendMessage(clientSocket, "Error in deleting product");
                 }
             }
             else
