@@ -37,5 +37,9 @@ void receiveMessage(int sockfd)
         printf("Error in reading message\n");
         exit(1);
     }
-    printf("%s\n", message);
+    for (int i = 0; i < sizeMsg; i++)
+    {
+        printf("%c", message[i]);
+    }
+    printf("\n");
 }
