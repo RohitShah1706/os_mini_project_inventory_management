@@ -151,7 +151,7 @@ void handleUserMenu(int clientSocket, struct User *user)
         {
         case 6:
             // ! add product - only admin
-            if (isAdmin)
+            if (isAdmin == true)
             {
                 struct Product product;
                 if (read(clientSocket, &product, sizeof(product)) < 0)
@@ -171,7 +171,7 @@ void handleUserMenu(int clientSocket, struct User *user)
             break;
         case 7:
             // ! show all products - only admin
-            if (isAdmin)
+            if (isAdmin == true)
             {
                 showAllProducts(clientSocket);
             }
@@ -182,7 +182,7 @@ void handleUserMenu(int clientSocket, struct User *user)
             break;
         case 8:
             // ! update a product with id
-            if (isAdmin)
+            if (isAdmin == true)
             {
                 if (updateProduct(clientSocket))
                 {

@@ -129,7 +129,7 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
     {
         printf("0. Logout\n");
         printf("1. See user details\n");
-        if (isAdmin)
+        if (*isAdmin == true)
         {
             printf("6. Add a product\n");
             printf("7. See all products\n");
@@ -153,7 +153,7 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
             showUserDetails(*user);
             break;
         case 6:
-            if (isAdmin)
+            if (*isAdmin == true)
             {
                 addProduct(sockfd);
             }
@@ -163,7 +163,7 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
             }
             break;
         case 7:
-            if (isAdmin)
+            if (*isAdmin == true)
             {
                 showAllProducts(sockfd);
             }
@@ -173,7 +173,7 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
             }
             break;
         case 8:
-            if (isAdmin)
+            if (*isAdmin == true)
             {
                 updateProduct(sockfd);
             }
