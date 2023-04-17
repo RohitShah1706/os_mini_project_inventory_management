@@ -34,14 +34,10 @@ void addProduct(int sockfd)
 void showAllProducts(int sockfd)
 {
     struct Product product;
-    while (1)
+    printf("Getting all products now\n");
+    while (read(sockfd, &product, sizeof(product)) > 0)
     {
-        int status = read(sockfd, &product, sizeof(product));
-        if (status < 0)
-        {
-            printf("Error in reading product\n");
-            exit(1);
-        }
+        printf("Product id: %d\n", product.productId);
         if (product.productId == -1)
         {
             break;
@@ -54,6 +50,76 @@ void showAllProducts(int sockfd)
         printf("Product price: %f\n", product.price);
         printf("\n");
     }
+    printf("All products read\n");
+}
+
+void updateProduct(int sockfd)
+{
+    struct Product product;
+    printf("Enter product id: ");
+    scanf("%d", &product.productId);
+    int toUpdate = 0;
+    printf("Do you want to update product name? (1/0): ");
+    scanf("%d", &toUpdate);
+    if (toUpdate)
+    {
+        printf("Enter product name: ");
+        scanf("%s", product.name);
+    }
+    else
+    {
+        strcpy(product.name, "");
+    }
+    printf("Do you want to update product category? (1/0): ");
+    scanf("%d", &toUpdate);
+    if (toUpdate)
+    {
+        printf("Enter product category: ");
+        scanf("%s", product.category);
+    }
+    else
+    {
+        strcpy(product.category, "");
+    }
+    printf("Do you want to update product quantity? (1/0): ");
+    scanf("%d", &toUpdate);
+    if (toUpdate)
+    {
+        printf("Enter product quantity: ");
+        scanf("%d", &product.quantityAvailable);
+    }
+    else
+    {
+        product.quantityAvailable = -1;
+    }
+    printf("Do you want to update product price? (1/0): ");
+    scanf("%d", &toUpdate);
+    if (toUpdate)
+    {
+        printf("Enter product price: ");
+        scanf("%f", &product.price);
+    }
+    else
+    {
+        product.price = -1;
+    }
+
+    // print product details
+    printf("Product details to be updated: \n");
+    printf("Product id: %d\n", product.productId);
+    printf("Product name: %s\n", product.name);
+    printf("Product category: %s\n", product.category);
+    printf("Product quantity: %d\n", product.quantityAvailable);
+    printf("Product price: %f\n", product.price);
+    printf("\n");
+
+    int status = write(sockfd, &product, sizeof(product));
+    if (status < 0)
+    {
+        printf("Error in sending product\n");
+        exit(1);
+    }
+    receiveMessage(sockfd);
 }
 
 void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin)
@@ -67,6 +133,7 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
         {
             printf("6. Add a product\n");
             printf("7. See all products\n");
+            printf("8. Update a product\n");
         }
         printf("Enter your choice: ");
         scanf("%d", &choice);
@@ -80,9 +147,8 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
         case 0:
             *isLoggedIn = false;
             *isAdmin = false;
-            write(sockfd, &choice, sizeof(choice));
             receiveMessage(sockfd);
-            return;
+            break;
         case 1:
             showUserDetails(*user);
             break;
@@ -106,9 +172,23 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
                 printf("Not an admin\n");
             }
             break;
+        case 8:
+            if (isAdmin)
+            {
+                updateProduct(sockfd);
+            }
+            else
+            {
+                printf("Not an admin\n");
+            }
+            break;
         default:
             printf("Invalid choice\n");
             break;
+        }
+        if (choice == 0)
+        {
+            return;
         }
     }
 }

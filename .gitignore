@@ -9,3 +9,4 @@ usersFile
 *.tar.gz
 client
 server
+init

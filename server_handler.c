@@ -5,8 +5,12 @@ bool checkLogin(struct User *user)
     bool isLoggedIn = false;
 
     int fd = openFile(USERS_FILENAME, O_RDWR);
-    struct User tempUser;
+
+    // ! first read nUsers
     lseek(fd, 0, SEEK_SET);
+    int nUsers = 0;
+    read(fd, &nUsers, sizeof(nUsers));
+    struct User tempUser;
     while (read(fd, &tempUser, sizeof(tempUser)) > 0)
     {
         if (strcmp(tempUser.email, user->email) == 0 && strcmp(tempUser.password, user->password) == 0)
@@ -20,13 +24,20 @@ bool checkLogin(struct User *user)
             break;
         }
     }
+    close(fd);
     return isLoggedIn;
 }
 
 bool doSignUp(struct User *user)
 {
     int fd = openFile(USERS_FILENAME, O_RDWR);
+    // ! check nUsers and increment it
     lseek(fd, 0, SEEK_SET);
+    int nUsers;
+    read(fd, &nUsers, sizeof(nUsers));
+    nUsers++;
+
+    // ! search for existing user
     struct User tempUser;
     while (read(fd, &tempUser, sizeof(tempUser)) > 0)
     {
@@ -35,9 +46,15 @@ bool doSignUp(struct User *user)
             return false;
         }
     }
+    // ! write nUsers
+    lseek(fd, 0, SEEK_SET);
+    write(fd, &nUsers, sizeof(nUsers));
+
+    // ! write user
     lseek(fd, 0, SEEK_END);
-    user->userId = tempUser.userId + 1;
+    user->userId = nUsers;
     write(fd, user, sizeof(*user));
+    close(fd);
     return true;
 }
 
