@@ -181,6 +181,17 @@ void handleUserMenu(int clientSocket, struct User *user)
         printf("Choice: %d\n", choice);
         switch (choice)
         {
+        case 2:
+            // ! show all products
+            if (isAdmin == false)
+            {
+                showAllProducts(clientSocket);
+            }
+            else
+            {
+                sendMessage(clientSocket, "Not a user");
+            }
+            break;
         case 6:
             // ! add product - only admin
             if (isAdmin == true)
