@@ -2,12 +2,22 @@
 
 void showUserDetails(struct User user)
 {
-    printf("User details: \n");
-    printf("Email: %s\n", user.email);
-    printf("Age: %d\n", user.age);
-    printf("Phone number: %s\n", user.phoneNo);
-    printf("Address: %s\n", user.address);
-    printf("Is Admin: %d\n", user.isAdmin);
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
+    ft_write_ln(table, "User Detail", "Value");
+
+    ft_write_ln(table, "Email", user.email);
+    char ageStr[10];
+    sprintf(ageStr, "%d", user.age);
+    ft_write_ln(table, "Age", ageStr);
+    ft_write_ln(table, "Phone number", user.phoneNo);
+    ft_write_ln(table, "Address", user.address);
+    if (user.isAdmin)
+        ft_write_ln(table, "Is Admin", "Yes");
+    else
+        ft_write_ln(table, "Is Admin", "No");
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
 }
 
 void addProduct(int sockfd)
@@ -34,20 +44,25 @@ void addProduct(int sockfd)
 void showAllProducts(int sockfd)
 {
     struct Product product;
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
+    ft_write_ln(table, "Id", "Name", "Category", "Quantity", "Price");
     while (read(sockfd, &product, sizeof(product)) > 0)
     {
         if (product.productId == -1)
         {
             break;
         }
-        printf("Product details: \n");
-        printf("Product id: %d\n", product.productId);
-        printf("Product name: %s\n", product.name);
-        printf("Product category: %s\n", product.category);
-        printf("Product quantity: %d\n", product.quantityAvailable);
-        printf("Product price: %f\n", product.price);
-        printf("\n");
+        char productIdStr[100];
+        sprintf(productIdStr, "%d", product.productId);
+        char quantityStr[100];
+        sprintf(quantityStr, "%d", product.quantityAvailable);
+        char priceStr[100];
+        sprintf(priceStr, "%f", product.price);
+        ft_write_ln(table, productIdStr, product.name, product.category, quantityStr, priceStr);
     }
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
 }
 
 void updateProduct(int sockfd)
@@ -102,21 +117,40 @@ void updateProduct(int sockfd)
     }
 
     // print product details
-    printf("Product details to be updated: \n");
-    printf("Product id: %d\n", product.productId);
-    printf("Product name: %s\n", product.name);
-    printf("Product category: %s\n", product.category);
-    printf("Product quantity: %d\n", product.quantityAvailable);
-    printf("Product price: %f\n", product.price);
+    ft_table_t *table = ft_create_table();
+    ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
+    ft_write_ln(table, "Field", "Value");
+    char productIdStr[100];
+    sprintf(productIdStr, "%d", product.productId);
+    ft_write_ln(table, "Product id", productIdStr);
+    if (strcmp(product.category, "") != 0)
+        ft_write_ln(table, "Product category", product.category);
+    if (product.quantityAvailable != -1)
+    {
+        char quantityStr[100];
+        sprintf(quantityStr, "%d", product.quantityAvailable);
+        ft_write_ln(table, "Product quantity", quantityStr);
+    }
+    if (product.price != -1)
+    {
+        char priceStr[100];
+        sprintf(priceStr, "%f", product.price);
+        ft_write_ln(table, "Product price", priceStr);
+    }
+    if (strcmp(product.name, "") != 0)
+    {
+        ft_write_ln(table, "Product name", product.name);
+    }
     if (product.isDeleted == false)
     {
-        printf("Product isDeleted: 0\n");
+        ft_write_ln(table, "Product isDeleted", "False");
     }
     else
     {
-        printf("Product isDeleted: 1\n");
+        ft_write_ln(table, "Product isDeleted", "True");
     }
-    printf("\n");
+    printf("%s\n", ft_to_string(table));
+    ft_destroy_table(table);
 
     int status = write(sockfd, &product, sizeof(product));
     if (status < 0)
@@ -164,14 +198,26 @@ void showCartItems(int sockfd)
 {
     struct Cart cart;
     read(sockfd, &cart, sizeof(cart));
-    printf("Cart details: \n");
-    printf("Cart id: %d\n", cart.userId);
-    printf("Cart items: \n");
-    for (int i = 0; i < cart.nProducts; i++)
+    if (cart.nProducts == 0)
     {
-        printf("Product id: %d\n", cart.productIds[i]);
-        printf("Quantity: %d\n", cart.quantities[i]);
-        printf("\n");
+        printf("Cart is empty\n");
+        return;
+    }
+    else
+    {
+        ft_table_t *table = ft_create_table();
+        ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
+        ft_write_ln(table, "Product id", "Quantity");
+        for (int i = 0; i < cart.nProducts; i++)
+        {
+            char productIdStr[100];
+            sprintf(productIdStr, "%d", cart.productIds[i]);
+            char quantityStr[100];
+            sprintf(quantityStr, "%d", cart.quantities[i]);
+            ft_write_ln(table, productIdStr, quantityStr);
+        }
+        printf("%s\n", ft_to_string(table));
+        ft_destroy_table(table);
     }
 }
 
