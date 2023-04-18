@@ -3,6 +3,7 @@
 
 #include "data.h"
 #include "messager.h"
+#include "tableFormatters/fort.h"
 
 #include <stdio.h>
 #include <stdbool.h>
