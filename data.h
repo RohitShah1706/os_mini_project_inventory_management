@@ -3,9 +3,10 @@
 
 #include <stdbool.h>
 
-#define PORT_NO 5000
+#define PORT_NO 8080
 #define USERS_FILENAME "usersFile"
 #define PRODUCTS_FILENAME "productsFile"
+#define CARTS_FILENAME "cartsFile"
 #define ORDERS_FILENAME "ordersFile"
 
 typedef struct User
@@ -27,6 +28,23 @@ struct Product
     int quantityAvailable;
     bool isDeleted;
     float price;
+};
+
+struct Cart
+{
+    // ! each user has only one cart
+    // ! so cartId = userId - handle while creating a new user
+    int userId;
+    // ! at max 10 products can be added to cart
+    int productIds[10];
+    int quantities[10];
+    int nProducts;
+};
+
+struct CartItem
+{
+    int productId;
+    int quantity;
 };
 
 struct Order

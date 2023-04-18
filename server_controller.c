@@ -51,7 +51,6 @@ void showAllProducts(int clientSocket)
     int nProducts;
     read(fd, &nProducts, sizeof(nProducts));
     struct Product product;
-    printf("Sending all products now\n");
     while (read(fd, &product, sizeof(product)) > 0)
     {
         if (product.isDeleted == false)
@@ -74,7 +73,6 @@ void showAllProducts(int clientSocket)
         exit(1);
     }
     close(fd);
-    printf("All products sent\n");
 }
 
 bool updateProduct(int clientSocket)
@@ -165,6 +163,72 @@ bool deleteProduct(int clientSocket)
     return false;
 }
 
+bool addToCart(int clientSocket, struct User *user)
+{
+    struct CartItem cartItem;
+    if (read(clientSocket, &cartItem, sizeof(cartItem)) < 0)
+    {
+        printf("Error in reading cart item\n");
+        exit(1);
+    }
+    int fdCarts = openFile(CARTS_FILENAME, O_RDWR);
+    lseek(fdCarts, 0, SEEK_SET);
+    int nCarts;
+    read(fdCarts, &nCarts, sizeof(nCarts));
+    // ! since only logged in users can add to cart, we can assume that the user exists
+    // ! so does their cart such that cardId = userId
+    // ! just lseek to that cart
+    struct Cart cart;
+    lseek(fdCarts, sizeof(nCarts) + ((user->userId - 1) * sizeof(cart)), SEEK_SET);
+    read(fdCarts, &cart, sizeof(cart));
+    if (cart.nProducts >= 10)
+    {
+        close(fdCarts);
+        printf("Cart is full - 1 %d\n", cart.nProducts);
+        return false;
+    }
+
+    int fdProducts = openFile(PRODUCTS_FILENAME, O_RDWR);
+    lseek(fdProducts, 0, SEEK_SET);
+    int nProducts;
+    // ! check if product exists
+    if (nProducts < cartItem.productId)
+    {
+        close(fdCarts);
+        close(fdProducts);
+        printf("No such product exists - 2\n");
+        return false;
+    }
+    read(fdProducts, &nProducts, sizeof(nProducts));
+    struct Product product;
+    lseek(fdProducts, sizeof(nProducts) + ((cartItem.productId - 1) * sizeof(product)), SEEK_SET);
+    read(fdProducts, &product, sizeof(product));
+    // ! if product already deleted or quantity not available - then return false
+    if (product.isDeleted == true || product.quantityAvailable < cartItem.quantity)
+    {
+        close(fdCarts);
+        close(fdProducts);
+        printf("Product is deleted or quantity not available - 3\n");
+        return false;
+    }
+    // TODO - don't decrease quantity available
+    // TODO - only when he checks out you should inform him that the quantity is not available
+
+    // ! add product to cart
+    cart.productIds[cart.nProducts] = cartItem.productId;
+    cart.quantities[cart.nProducts] = cartItem.quantity;
+    cart.nProducts++;
+    lseek(fdCarts, -sizeof(cart), SEEK_CUR);
+    write(fdCarts, &cart, sizeof(cart));
+    close(fdCarts);
+    close(fdProducts);
+    return true;
+}
+
+void showCart(int clientSocket, struct User *user)
+{
+}
+
 void handleUserMenu(int clientSocket, struct User *user)
 {
     int choice;
@@ -186,6 +250,35 @@ void handleUserMenu(int clientSocket, struct User *user)
             if (isAdmin == false)
             {
                 showAllProducts(clientSocket);
+            }
+            else
+            {
+                sendMessage(clientSocket, "Not a user");
+            }
+            break;
+        case 3:
+            // ! add to cart
+            if (isAdmin == false)
+            {
+                if (addToCart(clientSocket, user))
+                {
+                    sendMessage(clientSocket, "Product added to cart successfully");
+                }
+                else
+                {
+                    sendMessage(clientSocket, "Error in adding product to cart");
+                }
+            }
+            else
+            {
+                sendMessage(clientSocket, "Not a user");
+            }
+            break;
+        case 4:
+            // ! show cart
+            if (isAdmin == false)
+            {
+                showCart(clientSocket, user);
             }
             else
             {

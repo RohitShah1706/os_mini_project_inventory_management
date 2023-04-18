@@ -34,10 +34,8 @@ void addProduct(int sockfd)
 void showAllProducts(int sockfd)
 {
     struct Product product;
-    printf("Getting all products now\n");
     while (read(sockfd, &product, sizeof(product)) > 0)
     {
-        printf("Product id: %d\n", product.productId);
         if (product.productId == -1)
         {
             break;
@@ -50,7 +48,6 @@ void showAllProducts(int sockfd)
         printf("Product price: %f\n", product.price);
         printf("\n");
     }
-    printf("All products read\n");
 }
 
 void updateProduct(int sockfd)
@@ -144,6 +141,30 @@ void deleteProduct(int sockfd)
     receiveMessage(sockfd);
 }
 
+void addProductToCart(int sockfd)
+{
+    int productId, quantity;
+    printf("Enter product id: ");
+    scanf("%d", &productId);
+    printf("Enter quantity: ");
+    scanf("%d", &quantity);
+    struct CartItem cartItem;
+    cartItem.productId = productId;
+    cartItem.quantity = quantity;
+    int status = write(sockfd, &cartItem, sizeof(cartItem));
+    if (status < 0)
+    {
+        printf("Error in sending product id\n");
+        exit(1);
+    }
+    receiveMessage(sockfd);
+}
+
+void showCartItems(int sockfd)
+{
+
+}
+
 void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin)
 {
     int choice;
@@ -154,6 +175,9 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
         if (*isAdmin == false)
         {
             printf("2. See all products\n");
+            printf("3. Add product to cart\n");
+            printf("4. See cart items\n");
+            printf("5. Checkout cart products\n");
         }
         if (*isAdmin == true)
         {
@@ -183,6 +207,26 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
             if (*isAdmin == false)
             {
                 showAllProducts(sockfd);
+            }
+            else
+            {
+                printf("Not a user\n");
+            }
+            break;
+        case 3:
+            if (*isAdmin == false)
+            {
+                addProductToCart(sockfd);
+            }
+            else
+            {
+                printf("Not a user\n");
+            }
+            break;
+        case 4:
+            if (*isAdmin == false)
+            {
+                showCartItems(sockfd);
             }
             else
             {

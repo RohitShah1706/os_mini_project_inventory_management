@@ -30,16 +30,20 @@ bool checkLogin(struct User *user)
 
 bool doSignUp(struct User *user)
 {
-    int fd = openFile(USERS_FILENAME, O_RDWR);
+    int fdUsers = openFile(USERS_FILENAME, O_RDWR);
+    int fdCarts = openFile(CARTS_FILENAME, O_RDWR);
     // ! check nUsers and increment it
-    lseek(fd, 0, SEEK_SET);
-    int nUsers;
-    read(fd, &nUsers, sizeof(nUsers));
+    lseek(fdUsers, 0, SEEK_SET);
+    lseek(fdCarts, 0, SEEK_END);
+    int nUsers, nCarts;
+    read(fdUsers, &nUsers, sizeof(nUsers));
+    read(fdCarts, &nCarts, sizeof(nCarts));
     nUsers++;
+    nCarts++;
 
     // ! search for existing user
     struct User tempUser;
-    while (read(fd, &tempUser, sizeof(tempUser)) > 0)
+    while (read(fdUsers, &tempUser, sizeof(tempUser)) > 0)
     {
         if (strcmp(tempUser.email, user->email) == 0)
         {
@@ -47,14 +51,25 @@ bool doSignUp(struct User *user)
         }
     }
     // ! write nUsers
-    lseek(fd, 0, SEEK_SET);
-    write(fd, &nUsers, sizeof(nUsers));
+    lseek(fdUsers, 0, SEEK_SET);
+    write(fdUsers, &nUsers, sizeof(nUsers));
+
+    // ! write nCarts
+    lseek(fdCarts, 0, SEEK_SET);
+    write(fdCarts, &nCarts, sizeof(nCarts));
 
     // ! write user
-    lseek(fd, 0, SEEK_END);
+    lseek(fdUsers, 0, SEEK_END);
     user->userId = nUsers;
-    write(fd, user, sizeof(*user));
-    close(fd);
+    write(fdUsers, user, sizeof(*user));
+    close(fdUsers);
+
+    // ! write cart
+    lseek(fdCarts, 0, SEEK_END);
+    struct Cart cart;
+    cart.userId = nUsers;
+    cart.nProducts = 0;
+    write(fdCarts, &cart, sizeof(cart));
     return true;
 }
 

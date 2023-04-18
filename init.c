@@ -56,6 +56,22 @@ void handleProductsFileCreation()
     }
 }
 
+void handleCartsFileCreation()
+{
+    int fd = handleFileCreation(CARTS_FILENAME);
+    if (fd > 0)
+    {
+        // ! add initial number of carts
+        int nCarts = 0;
+        write(fd, &nCarts, sizeof(nCarts));
+        // ! write cart for admin user - even if there are no products in the cart
+        struct Cart cart;
+        cart.userId = 1;
+        cart.nProducts = 0;
+        write(fd, &cart, sizeof(cart));
+    }
+}
+
 void handleOrdersFileCreation()
 {
     int fd = handleFileCreation(ORDERS_FILENAME);
@@ -71,6 +87,7 @@ int main()
 {
     handleUsersFileCreation();
     handleProductsFileCreation();
+    handleCartsFileCreation();
     handleOrdersFileCreation();
     return 0;
 }
