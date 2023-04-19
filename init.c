@@ -4,7 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
 #include <fcntl.h>
+
+union semun
+{
+    int val;
+    struct semid_ds *buf;  // ! buffer for IPC_STAT, IPC_SET
+    unsigned short *array; // ! array for GETALL, SETALL
+};
 
 int handleFileCreation(char *fileName)
 {
@@ -83,11 +93,44 @@ void handleOrdersFileCreation()
     }
 }
 
+void handleSemaphoreCreation()
+{
+    key_t key;
+    int semid;
+
+    key = ftok(".", 'a');
+    if (key < 0)
+    {
+        perror("ftok");
+        exit(1);
+    }
+    int totalSemaphores = PRODUCTS_TOTAL_ALLOWED;
+    semid = semget(key, totalSemaphores, 0666 | IPC_CREAT);
+    if (semid < 0)
+    {
+        perror("semget");
+        exit(1);
+    }
+    // ! initialize all semaphores to 1
+    union semun semArg;
+    semArg.val = 1; // ! binary semaphore
+    for (int i = 0; i < totalSemaphores; i++)
+    {
+        int semaphoreToSelect = i;
+        if (semctl(semid, semaphoreToSelect, SETVAL, semArg) < 0)
+        {
+            perror("semctl");
+            exit(1);
+        }
+    }
+}
+
 int main()
 {
     handleUsersFileCreation();
     handleProductsFileCreation();
     handleCartsFileCreation();
     handleOrdersFileCreation();
+    handleSemaphoreCreation();
     return 0;
 }

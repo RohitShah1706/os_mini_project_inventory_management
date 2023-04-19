@@ -3,6 +3,7 @@
 
 #include "data.h"
 #include "messager.h"
+#include "locker.h"
 
 #include <stdio.h>
 #include <stdlib.h>

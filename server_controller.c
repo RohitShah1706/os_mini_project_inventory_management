@@ -13,8 +13,6 @@ int openFile(char *fileName, int flags)
 
 bool addProduct(struct Product *product)
 {
-    // TODO: check if product already exists
-    // TODO: if first product, set product id to 1
     printf("Adding product: %s\n", product->name);
     int fd = openFile(PRODUCTS_FILENAME, O_RDWR);
     // ! read nProducts
@@ -31,6 +29,12 @@ bool addProduct(struct Product *product)
             return false;
         }
     }
+    // ! lock record
+    if (lockFileRecord(fd, nProducts) == false)
+    {
+        close(fd);
+        return false;
+    }
     // ! write nProducts
     lseek(fd, 0, SEEK_SET);
     write(fd, &nProducts, sizeof(nProducts));
@@ -41,6 +45,13 @@ bool addProduct(struct Product *product)
     write(fd, product, sizeof(*product));
     printf("Product added: %s\n", product->name);
     close(fd);
+
+    // ! unlock record
+    if (unlockFileRecord(fd, nProducts) == false)
+    {
+        close(fd);
+        return false;
+    }   
     return true;
 }
 

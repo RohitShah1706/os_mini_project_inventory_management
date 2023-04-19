@@ -8,6 +8,7 @@
 #define PRODUCTS_FILENAME "productsFile"
 #define CARTS_FILENAME "cartsFile"
 #define ORDERS_FILENAME "ordersFile"
+#define PRODUCTS_TOTAL_ALLOWED 100
 
 typedef struct User
 {
