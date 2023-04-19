@@ -227,6 +227,7 @@ bool addToCart(int clientSocket, struct User *user)
     int fdProducts = openFile(PRODUCTS_FILENAME, O_RDWR);
     lseek(fdProducts, 0, SEEK_SET);
     int nProducts;
+    read(fdProducts, &nProducts, sizeof(nProducts));
     // ! check if product exists
     if (nProducts < cartItem.productId)
     {
@@ -235,7 +236,19 @@ bool addToCart(int clientSocket, struct User *user)
         printf("No such product exists - 2\n");
         return false;
     }
-    read(fdProducts, &nProducts, sizeof(nProducts));
+    // ! check if product already exists in cart
+    bool isPresentInCart = false;
+    int itemIndexInCart = -1;
+    for (int i = 0; i < cart.nProducts; i++)
+    {
+        if (cart.productIds[i] == cartItem.productId)
+        {
+            isPresentInCart = true;
+            itemIndexInCart = i;
+            break;
+        }
+    }
+
     struct Product product;
     lseek(fdProducts, sizeof(nProducts) + ((cartItem.productId - 1) * sizeof(product)), SEEK_SET);
     read(fdProducts, &product, sizeof(product));
@@ -258,14 +271,33 @@ bool addToCart(int clientSocket, struct User *user)
     // TODO - also check if the product is deleted or not
 
     // ! add product to cart
-    cart.productIds[cart.nProducts] = cartItem.productId;
-    cart.quantities[cart.nProducts] = cartItem.quantity;
-    cart.nProducts++;
-    lseek(fdCarts, -sizeof(cart), SEEK_CUR);
-    write(fdCarts, &cart, sizeof(cart));
-    close(fdCarts);
-    close(fdProducts);
-    return true;
+    if (isPresentInCart == true)
+    {
+        if (cart.quantities[itemIndexInCart] + cartItem.quantity > product.quantityAvailable)
+        {
+            close(fdCarts);
+            close(fdProducts);
+            printf("Product quantity not available - 4\n");
+            return false;
+        }
+        cart.quantities[itemIndexInCart] += cartItem.quantity;
+        lseek(fdCarts, -sizeof(cart), SEEK_CUR);
+        write(fdCarts, &cart, sizeof(cart));
+        close(fdCarts);
+        close(fdProducts);
+        return true;
+    }
+    else
+    {
+        cart.productIds[cart.nProducts] = cartItem.productId;
+        cart.quantities[cart.nProducts] = cartItem.quantity;
+        cart.nProducts++;
+        lseek(fdCarts, -sizeof(cart), SEEK_CUR);
+        write(fdCarts, &cart, sizeof(cart));
+        close(fdCarts);
+        close(fdProducts);
+        return true;
+    }
 }
 
 void showCart(int clientSocket, struct User *user)
@@ -398,7 +430,7 @@ void checkout(int clientSocket, struct User *user)
         if (product.quantityAvailable < quantity || product.isDeleted == true)
         {
             close(fdProducts);
-            sendMessage(clientSocket, "Product not available");
+            sendMessage(clientSocket, "Products not available. Remove them from cart and try again");
             return;
         }
     }

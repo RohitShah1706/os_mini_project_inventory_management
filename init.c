@@ -61,8 +61,28 @@ void handleProductsFileCreation()
     if (fd > 0)
     {
         // ! add initial number of products
-        int nProducts = 0;
+        int nProducts = 5;
         write(fd, &nProducts, sizeof(nProducts));
+
+        /*
+            int productId;
+            char name[100];
+            char category[100];
+            int quantityAvailable;
+            bool isDeleted;
+            float price;
+        */
+        struct Product products[5] = {
+            {1, "Nirma", "washing", 100, false, 10},
+            {2, "Cube", "fun", 200, false, 100},
+            {3, "Iphone 14", "gadgets", 10, false, 100000},
+            {4, "BluePen", "stationery", 400, false, 5},
+            {5, "Dettol", "health", 500, false, 50},
+        };
+        for (int i = 0; i < nProducts; i++)
+        {
+            write(fd, &products[i], sizeof(products[i]));
+        }
     }
 }
 
