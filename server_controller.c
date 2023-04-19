@@ -51,7 +51,7 @@ bool addProduct(struct Product *product)
     {
         close(fd);
         return false;
-    }   
+    }
     return true;
 }
 
@@ -104,6 +104,7 @@ bool updateProduct(int clientSocket)
         if (tempProduct.productId == product.productId && tempProduct.isDeleted == false)
         {
             struct Product updatedProductDetails;
+            updatedProductDetails.productId = tempProduct.productId;
             if (strcmp(product.name, "") != 0)
             {
                 strcpy(updatedProductDetails.name, product.name);
@@ -136,9 +137,21 @@ bool updateProduct(int clientSocket)
             {
                 updatedProductDetails.quantityAvailable = tempProduct.quantityAvailable;
             }
+            // ! lock record
+            if (lockFileRecord(fd, product.productId) == false)
+            {
+                close(fd);
+                return false;
+            }
             lseek(fd, -sizeof(updatedProductDetails), SEEK_CUR);
             write(fd, &updatedProductDetails, sizeof(updatedProductDetails));
             close(fd);
+            // ! unlock record
+            if (unlockFileRecord(fd, product.productId) == false)
+            {
+                close(fd);
+                return false;
+            }
             return true;
         }
     }
@@ -164,9 +177,21 @@ bool deleteProduct(int clientSocket)
         if (tempProduct.productId == productId && tempProduct.isDeleted == false)
         {
             tempProduct.isDeleted = true;
+            // ! lock record
+            if (lockFileRecord(fd, productId) == false)
+            {
+                close(fd);
+                return false;
+            }
             lseek(fd, -sizeof(tempProduct), SEEK_CUR);
             write(fd, &tempProduct, sizeof(tempProduct));
             close(fd);
+            // ! unlock record
+            if (unlockFileRecord(fd, productId) == false)
+            {
+                close(fd);
+                return false;
+            }
             return true;
         }
     }
@@ -219,6 +244,12 @@ bool addToCart(int clientSocket, struct User *user)
     {
         close(fdCarts);
         close(fdProducts);
+        int isDeleted = 0;
+        if (product.isDeleted == true)
+        {
+            isDeleted = 1;
+        }
+        printf("Product isDeleted %d and product quantityAvailable %d\n", isDeleted, product.quantityAvailable);
         printf("Product is deleted or quantity not available - 3\n");
         return false;
     }
@@ -377,11 +408,26 @@ void checkout(int clientSocket, struct User *user)
         int productId = cart.productIds[i];
         int quantity = cart.quantities[i];
         struct Product product;
+        // ! lock the product
+        if (lockFileRecord(fdProducts, productId - 1) == false)
+        {
+            close(fdProducts);
+            sendMessage(clientSocket, "Error in locking product");
+            return;
+        }
         lseek(fdProducts, sizeof(nProducts) + ((productId - 1) * sizeof(product)), SEEK_SET);
         read(fdProducts, &product, sizeof(product));
         product.quantityAvailable -= quantity;
         lseek(fdProducts, -sizeof(product), SEEK_CUR);
         write(fdProducts, &product, sizeof(product));
+
+        // ! unlock the product
+        if (unlockFileRecord(fdProducts, productId - 1) == false)
+        {
+            close(fdProducts);
+            sendMessage(clientSocket, "Error in unlocking product");
+            return;
+        }
     }
     close(fdProducts);
     // ! now update the cart
