@@ -38,6 +38,7 @@ void addProduct(int sockfd)
         printf("Error in sending product\n");
         exit(1);
     }
+    printf("Product sent\n");
     receiveMessage(sockfd);
 }
 

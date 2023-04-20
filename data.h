@@ -3,14 +3,14 @@
 
 #include <stdbool.h>
 
-#define PORT_NO 5000
+#define PORT_NO 8080
 #define USERS_FILENAME "usersFile"
 #define PRODUCTS_FILENAME "productsFile"
 #define CARTS_FILENAME "cartsFile"
 #define ORDERS_FILENAME "ordersFile"
 #define PRODUCTS_TOTAL_ALLOWED 100
 
-typedef struct User
+struct User
 {
     int userId;
     char email[100];
@@ -19,7 +19,7 @@ typedef struct User
     char phoneNo[15];
     char address[100];
     bool isAdmin;
-} User;
+};
 
 struct Product
 {

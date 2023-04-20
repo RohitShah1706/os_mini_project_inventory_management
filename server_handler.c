@@ -28,7 +28,7 @@ bool checkLogin(struct User *user)
     return isLoggedIn;
 }
 
-bool doSignUp(struct User *user)
+void doSignUp(int clientSocket, struct User *user)
 {
     int fdUsers = openFile(USERS_FILENAME, O_RDWR);
     int fdCarts = openFile(CARTS_FILENAME, O_RDWR);
@@ -47,7 +47,9 @@ bool doSignUp(struct User *user)
     {
         if (strcmp(tempUser.email, user->email) == 0)
         {
-            return false;
+            close(fdUsers);
+            sendMessage(clientSocket, "User already exists");
+            return;
         }
     }
     // ! write nUsers
@@ -70,21 +72,24 @@ bool doSignUp(struct User *user)
     cart.userId = nUsers;
     cart.nProducts = 0;
     write(fdCarts, &cart, sizeof(cart));
-    return true;
+    close(fdCarts);
+    sendMessage(clientSocket, "User created successfully");
+    return;
 }
 
-bool handleSignUp(int clientSocket)
+void handleSignUp(int clientSocket)
 {
     struct User user;
     int status = read(clientSocket, &user, sizeof(user));
     if (status < 0)
     {
         printf("Error in reading user\n");
-        return false;
+        sendMessage(clientSocket, "Error in reading user");
+        return;
     }
     user.isAdmin = false;
     printf("User received: %s\n", user.email);
-    return doSignUp(&user);
+    return doSignUp(clientSocket, &user);
 }
 
 bool handleLogin(int clientSocket, struct User *user)
@@ -117,15 +122,7 @@ void *handleClientConnection(void *arg)
         switch (choice)
         {
         case 1:
-            if (handleSignUp(clientSocket))
-            {
-                message = "User created successfully";
-            }
-            else
-            {
-                message = "Error in creating user";
-            }
-            sendMessage(clientSocket, message);
+            handleSignUp(clientSocket);
             break;
         case 2:
             isLoggedIn = handleLogin(clientSocket, &user);

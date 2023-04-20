@@ -82,7 +82,7 @@ void handleServerConnection(int sockfd)
         case 2:
             if (!login(sockfd))
             {
-                printf("Wrong password\n");
+                printf("Wrong password or email. Try again.\n");
             }
             else
             {

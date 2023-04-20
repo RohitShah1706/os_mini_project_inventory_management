@@ -11,7 +11,7 @@ int openFile(char *fileName, int flags)
     return fd;
 }
 
-bool addProduct(struct Product *product)
+void addProduct(int clientSocket, struct Product *product)
 {
     printf("Adding product: %s\n", product->name);
     int fd = openFile(PRODUCTS_FILENAME, O_RDWR);
@@ -26,14 +26,16 @@ bool addProduct(struct Product *product)
         if (strcmp(tempProduct.name, product->name) == 0 && tempProduct.isDeleted == false)
         {
             close(fd);
-            return false;
+            sendMessage(clientSocket, "Product already exists");
+            return;
         }
     }
     // ! lock record
     if (lockFileRecord(fd, nProducts) == false)
     {
         close(fd);
-        return false;
+        sendMessage(clientSocket, "Error locking file");
+        return;
     }
     // ! write nProducts
     lseek(fd, 0, SEEK_SET);
@@ -43,16 +45,15 @@ bool addProduct(struct Product *product)
     product->productId = nProducts;
     product->isDeleted = false;
     write(fd, product, sizeof(*product));
-    printf("Product added: %s\n", product->name);
     close(fd);
-
     // ! unlock record
     if (unlockFileRecord(fd, nProducts) == false)
     {
-        close(fd);
-        return false;
+        sendMessage(clientSocket, "Error unlocking file");
+        return;
     }
-    return true;
+    sendMessage(clientSocket, "Successfully added product");
+    return;
 }
 
 void showAllProducts(int clientSocket)
@@ -86,7 +87,7 @@ void showAllProducts(int clientSocket)
     close(fd);
 }
 
-bool updateProduct(int clientSocket)
+void updateProduct(int clientSocket)
 {
     struct Product product;
     if (read(clientSocket, &product, sizeof(product)) < 0)
@@ -141,7 +142,8 @@ bool updateProduct(int clientSocket)
             if (lockFileRecord(fd, product.productId) == false)
             {
                 close(fd);
-                return false;
+                sendMessage(clientSocket, "Error locking file");
+                return;
             }
             lseek(fd, -sizeof(updatedProductDetails), SEEK_CUR);
             write(fd, &updatedProductDetails, sizeof(updatedProductDetails));
@@ -150,16 +152,20 @@ bool updateProduct(int clientSocket)
             if (unlockFileRecord(fd, product.productId) == false)
             {
                 close(fd);
-                return false;
+                sendMessage(clientSocket, "Error unlocking file");
+                return;
             }
-            return true;
+            sendMessage(clientSocket, "Successfully updated product");
+            close(fd);
+            return;
         }
     }
     close(fd);
-    return false;
+    sendMessage(clientSocket, "Product not found");
+    return;
 }
 
-bool deleteProduct(int clientSocket)
+void deleteProduct(int clientSocket)
 {
     int productId;
     if (read(clientSocket, &productId, sizeof(productId)) < 0)
@@ -181,7 +187,8 @@ bool deleteProduct(int clientSocket)
             if (lockFileRecord(fd, productId) == false)
             {
                 close(fd);
-                return false;
+                sendMessage(clientSocket, "Error locking file");
+                return;
             }
             lseek(fd, -sizeof(tempProduct), SEEK_CUR);
             write(fd, &tempProduct, sizeof(tempProduct));
@@ -190,16 +197,20 @@ bool deleteProduct(int clientSocket)
             if (unlockFileRecord(fd, productId) == false)
             {
                 close(fd);
-                return false;
+                sendMessage(clientSocket, "Error unlocking file");
+                return;
             }
-            return true;
+            close(fd);
+            sendMessage(clientSocket, "Successfully deleted product");
+            return;
         }
     }
     close(fd);
-    return false;
+    sendMessage(clientSocket, "Product not found");
+    return;
 }
 
-bool addToCart(int clientSocket, struct User *user)
+void addToCart(int clientSocket, struct User *user)
 {
     struct CartItem cartItem;
     if (read(clientSocket, &cartItem, sizeof(cartItem)) < 0)
@@ -220,8 +231,7 @@ bool addToCart(int clientSocket, struct User *user)
     if (cart.nProducts >= 10)
     {
         close(fdCarts);
-        printf("Cart is full - 1 %d\n", cart.nProducts);
-        return false;
+        sendMessage(clientSocket, "Cart is full. Try removing some items first.");
     }
 
     int fdProducts = openFile(PRODUCTS_FILENAME, O_RDWR);
@@ -233,8 +243,7 @@ bool addToCart(int clientSocket, struct User *user)
     {
         close(fdCarts);
         close(fdProducts);
-        printf("No such product exists - 2\n");
-        return false;
+        sendMessage(clientSocket, "No such product exists.");
     }
     // ! check if product already exists in cart
     bool isPresentInCart = false;
@@ -257,14 +266,14 @@ bool addToCart(int clientSocket, struct User *user)
     {
         close(fdCarts);
         close(fdProducts);
-        int isDeleted = 0;
         if (product.isDeleted == true)
         {
-            isDeleted = 1;
+            sendMessage(clientSocket, "Product is deleted.");
         }
-        printf("Product isDeleted %d and product quantityAvailable %d\n", isDeleted, product.quantityAvailable);
-        printf("Product is deleted or quantity not available - 3\n");
-        return false;
+        else
+        {
+            sendMessage(clientSocket, "Product quantity not available.");
+        }
     }
     // TODO - don't decrease quantity available
     // TODO - only when he checks out you should inform him that the quantity is not available
@@ -277,15 +286,14 @@ bool addToCart(int clientSocket, struct User *user)
         {
             close(fdCarts);
             close(fdProducts);
-            printf("Product quantity not available - 4\n");
-            return false;
+            sendMessage(clientSocket, "Product quantity not available.");
         }
         cart.quantities[itemIndexInCart] += cartItem.quantity;
         lseek(fdCarts, -sizeof(cart), SEEK_CUR);
         write(fdCarts, &cart, sizeof(cart));
         close(fdCarts);
         close(fdProducts);
-        return true;
+        sendMessage(clientSocket, "Product added to cart.");
     }
     else
     {
@@ -296,7 +304,7 @@ bool addToCart(int clientSocket, struct User *user)
         write(fdCarts, &cart, sizeof(cart));
         close(fdCarts);
         close(fdProducts);
-        return true;
+        sendMessage(clientSocket, "Product added to cart.");
     }
 }
 
@@ -506,14 +514,7 @@ void handleUserMenu(int clientSocket, struct User *user)
             // ! add to cart
             if (isAdmin == false)
             {
-                if (addToCart(clientSocket, user))
-                {
-                    sendMessage(clientSocket, "Product added to cart successfully");
-                }
-                else
-                {
-                    sendMessage(clientSocket, "Error in adding product to cart");
-                }
+                addToCart(clientSocket, user);
             }
             else
             {
@@ -563,14 +564,7 @@ void handleUserMenu(int clientSocket, struct User *user)
                     printf("Error in reading product\n");
                     exit(1);
                 }
-                if (!addProduct(&product))
-                {
-                    sendMessage(clientSocket, "Error in adding product");
-                }
-                else
-                {
-                    sendMessage(clientSocket, "Product added successfully");
-                }
+                addProduct(clientSocket, &product);
             }
             break;
         case 11:
@@ -588,14 +582,7 @@ void handleUserMenu(int clientSocket, struct User *user)
             // ! update a product with id
             if (isAdmin == true)
             {
-                if (updateProduct(clientSocket))
-                {
-                    sendMessage(clientSocket, "Product updated successfully");
-                }
-                else
-                {
-                    sendMessage(clientSocket, "Error in updating product");
-                }
+                updateProduct(clientSocket);
             }
             else
             {
@@ -606,14 +593,7 @@ void handleUserMenu(int clientSocket, struct User *user)
             // ! delete a product with id
             if (isAdmin == true)
             {
-                if (deleteProduct(clientSocket))
-                {
-                    sendMessage(clientSocket, "Product deleted successfully");
-                }
-                else
-                {
-                    sendMessage(clientSocket, "Error in deleting product");
-                }
+                deleteProduct(clientSocket);
             }
             else
             {

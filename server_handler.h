@@ -11,7 +11,7 @@
 char response[100];
 
 bool checkLogin(struct User *user);
-bool handleSignUp(int clientSocket);
+void handleSignUp(int clientSocket);
 bool handleLogin(int clientSocket, struct User *user);
 void *handleClientConnection(void *arg);
 

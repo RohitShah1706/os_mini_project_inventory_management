@@ -13,7 +13,7 @@
 #include <fcntl.h>
 
 int openFile(char *fileName, int flags);
-bool addProduct(struct Product *product);
+void addProduct(int clientSocket, struct Product *product);
 void handleUserMenu(int clientSocket, struct User *user);
 
 #endif
