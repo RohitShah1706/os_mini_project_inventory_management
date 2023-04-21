@@ -8,6 +8,7 @@
 #define PRODUCTS_FILENAME "productsFile"
 #define CARTS_FILENAME "cartsFile"
 #define ORDERS_FILENAME "ordersFile"
+#define ADMIN_LOGS_FILENAME "adminLogsFile.txt"
 #define PRODUCTS_TOTAL_ALLOWED 100
 
 struct User

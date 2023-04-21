@@ -4,6 +4,7 @@
 #include "data.h"
 #include "messager.h"
 #include "tableFormatters/fort.h"
+#include "log_generator.h"
 
 #include <stdio.h>
 #include <stdbool.h>

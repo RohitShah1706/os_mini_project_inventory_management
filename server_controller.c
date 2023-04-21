@@ -629,6 +629,10 @@ void handleUserMenu(int clientSocket, struct User *user)
         case 0:
             // ! logout
             isLoggedIn = false;
+            if(isAdmin == true) {
+                // ! generate log
+                adminLog();
+            }
             break;
         default:
             break;

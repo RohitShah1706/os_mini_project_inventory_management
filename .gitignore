@@ -11,3 +11,4 @@ cartsFile
 client
 server
 init
+*.txt

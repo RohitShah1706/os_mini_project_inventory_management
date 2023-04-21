@@ -1,6 +1,7 @@
-#ifndef SERVER_CONTROLLER_h
-#define SERVER_CONTROLLER_h
+#ifndef SERVER_CONTROLLER_H
+#define SERVER_CONTROLLER_H
 
+#include "log_generator.h"
 #include "data.h"
 #include "messager.h"
 #include "locker.h"

@@ -285,6 +285,7 @@ void placeOrder(int sockfd)
         sprintf(totalPriceStr, "%f", totalPrice);
         ft_write_ln(table, "", "", "", "Total", totalPriceStr);
         printf("%s\n", ft_to_string(table));
+        clientLog(cart.userId, table);
         ft_destroy_table(table);
 
         // ! take money from user
