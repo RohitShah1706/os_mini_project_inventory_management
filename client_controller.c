@@ -208,14 +208,18 @@ void showCartItems(int sockfd)
     {
         ft_table_t *table = ft_create_table();
         ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
-        ft_write_ln(table, "Product id", "Quantity");
+        ft_write_ln(table, "Id", "Name", "Price", "Quantity");
         for (int i = 0; i < cart.nProducts; i++)
         {
             char productIdStr[100];
             sprintf(productIdStr, "%d", cart.productIds[i]);
+
             char quantityStr[100];
             sprintf(quantityStr, "%d", cart.quantities[i]);
-            ft_write_ln(table, productIdStr, quantityStr);
+
+            char priceStr[100];
+            sprintf(priceStr, "%f", cart.prices[i]);
+            ft_write_ln(table, productIdStr, cart.productNames[i], priceStr, quantityStr);
         }
         printf("%s\n", ft_to_string(table));
         ft_destroy_table(table);

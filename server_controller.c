@@ -299,6 +299,8 @@ void addToCart(int clientSocket, struct User *user)
     {
         cart.productIds[cart.nProducts] = cartItem.productId;
         cart.quantities[cart.nProducts] = cartItem.quantity;
+        cart.prices[cart.nProducts] = product.price;
+        strcpy(cart.productNames[cart.nProducts], product.name);
         cart.nProducts++;
         lseek(fdCarts, -sizeof(cart), SEEK_CUR);
         write(fdCarts, &cart, sizeof(cart));
@@ -315,12 +317,12 @@ void showCart(int clientSocket, struct User *user)
     lseek(fdCarts, 0, SEEK_SET);
     int nCarts;
     read(fdCarts, &nCarts, sizeof(nCarts));
+    printf("nCarts = %d\n", nCarts);
     struct Cart cart;
     int cartId = user->userId;
     lseek(fdCarts, sizeof(nCarts) + ((cartId - 1) * sizeof(cart)), SEEK_SET);
     read(fdCarts, &cart, sizeof(cart));
     close(fdCarts);
-
     write(clientSocket, &cart, sizeof(cart));
 }
 

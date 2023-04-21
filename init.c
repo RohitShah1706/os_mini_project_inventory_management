@@ -52,6 +52,22 @@ void handleUsersFileCreation()
         // ! write noOfUsers & admin user
         write(fd, &nUsers, sizeof(nUsers));
         write(fd, &admin, sizeof(admin));
+
+        // ! create rohit-1 user
+        struct User rohit;
+        rohit.userId = 2;
+        strcpy(rohit.email, "rohit-1");
+        strcpy(rohit.password, "password");
+        rohit.age = 19;
+        strcpy(rohit.phoneNo, "8329880221");
+        strcpy(rohit.address, "Aakash Mogara Colony");
+        rohit.isAdmin = false;
+        nUsers++;
+        // ! write noOfUsers & rohit user
+        lseek(fd, 0, SEEK_SET);
+        write(fd, &nUsers, sizeof(nUsers));
+        lseek(fd, 0, SEEK_END);
+        write(fd, &rohit, sizeof(rohit));
     }
 }
 
@@ -92,11 +108,16 @@ void handleCartsFileCreation()
     if (fd > 0)
     {
         // ! add initial number of carts
-        int nCarts = 0;
+        int nCarts = 2;
         write(fd, &nCarts, sizeof(nCarts));
         // ! write cart for admin user - even if there are no products in the cart
         struct Cart cart;
         cart.userId = 1;
+        cart.nProducts = 0;
+        write(fd, &cart, sizeof(cart));
+
+        // ! add user cart
+        cart.userId = 2;
         cart.nProducts = 0;
         write(fd, &cart, sizeof(cart));
     }

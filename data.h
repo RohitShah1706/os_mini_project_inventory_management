@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#define PORT_NO 8080
+#define PORT_NO 5000
 #define USERS_FILENAME "usersFile"
 #define PRODUCTS_FILENAME "productsFile"
 #define CARTS_FILENAME "cartsFile"
@@ -39,6 +39,8 @@ struct Cart
     // ! at max 10 products can be added to cart
     int productIds[10];
     int quantities[10];
+    float prices[10];
+    char productNames[10][100];
     int nProducts;
 };
 
