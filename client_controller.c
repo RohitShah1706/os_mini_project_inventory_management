@@ -249,7 +249,51 @@ void updateCartItem(int sockfd)
 
 void placeOrder(int sockfd)
 {
-    receiveMessage(sockfd);
+    struct Cart cart;
+    read(sockfd, &cart, sizeof(cart));
+    if (cart.nProducts == 0)
+    {
+        printf("Cart is empty. Add products to cart to place order.\n");
+        // ! send 0 rs to server to indicate that we are not placing order
+        float totalMoney = 0;
+        int status = write(sockfd, &totalMoney, sizeof(totalMoney));
+    }
+    else
+    {
+        ft_table_t *table = ft_create_table();
+        ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
+        ft_write_ln(table, "Id", "Name", "Price", "Quantity", "Total");
+        float totalPrice = 0.0;
+        for (int i = 0; i < cart.nProducts; i++)
+        {
+            char productIdStr[100];
+            sprintf(productIdStr, "%d", cart.productIds[i]);
+
+            char quantityStr[100];
+            sprintf(quantityStr, "%d", cart.quantities[i]);
+
+            char priceStr[100];
+            sprintf(priceStr, "%f", cart.prices[i]);
+
+            float total = cart.prices[i] * cart.quantities[i];
+            totalPrice += total;
+            char totalStr[100];
+            sprintf(totalStr, "%f", total);
+            ft_write_ln(table, productIdStr, cart.productNames[i], priceStr, quantityStr, totalStr);
+        }
+        char totalPriceStr[100];
+        sprintf(totalPriceStr, "%f", totalPrice);
+        ft_write_ln(table, "", "", "", "Total", totalPriceStr);
+        printf("%s\n", ft_to_string(table));
+        ft_destroy_table(table);
+
+        // ! take money from user
+        float totalMoney = 0;
+        printf("Enter total money to pay: ");
+        scanf("%f", &totalMoney);
+        int status = write(sockfd, &totalMoney, sizeof(totalMoney));
+        receiveMessage(sockfd);
+    }
 }
 
 void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin)

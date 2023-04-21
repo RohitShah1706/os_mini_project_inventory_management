@@ -415,6 +415,19 @@ void updateCartItem(int clientSocket, struct User *user)
 
 void checkout(int clientSocket, struct User *user)
 {
+    // ! first show the cart
+    showCart(clientSocket, user);
+
+    // ! then ask for the total amount
+    float paidAmount = 0;
+    read(clientSocket, &paidAmount, sizeof(paidAmount));
+
+    if (paidAmount == 0.0)
+    {
+        sendMessage(clientSocket, "Cart is empty");
+        return;
+    }
+
     int cartId = user->userId;
     int fdCarts = openFile(CARTS_FILENAME, O_RDWR);
     lseek(fdCarts, 0, SEEK_SET);
@@ -430,10 +443,13 @@ void checkout(int clientSocket, struct User *user)
     int nProducts;
     read(fdProducts, &nProducts, sizeof(nProducts));
     // ! first check if all the products are available
+    float totalAmount = 0.0;
     for (int i = 0; i < cart.nProducts; i++)
     {
         int productId = cart.productIds[i];
         int quantity = cart.quantities[i];
+        int price = cart.prices[i];
+        totalAmount += quantity * price;
         struct Product product;
         lseek(fdProducts, sizeof(nProducts) + ((productId - 1) * sizeof(product)), SEEK_SET);
         read(fdProducts, &product, sizeof(product));
@@ -444,6 +460,14 @@ void checkout(int clientSocket, struct User *user)
             return;
         }
     }
+
+    if (paidAmount < totalAmount)
+    {
+        close(fdProducts);
+        sendMessage(clientSocket, "Paid amount is less than total amount");
+        return;
+    }
+
     // ! now update the products
     for (int i = 0; i < cart.nProducts; i++)
     {
