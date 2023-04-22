@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#define PORT_NO 5000
+#define PORT_NO 8080
 #define USERS_FILENAME "usersFile"
 #define PRODUCTS_FILENAME "productsFile"
 #define CARTS_FILENAME "cartsFile"
@@ -28,7 +28,7 @@ struct Product
     char name[100];
     char category[100];
     int quantityAvailable;
-    bool isDeleted;
+    int isDeleted;
     float price;
 };
 

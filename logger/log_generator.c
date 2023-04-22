@@ -34,7 +34,7 @@ void adminLog()
         char productPriceStr[100];
         sprintf(productPriceStr, "%f", productPrice);
         char productIsDeleted[10];
-        if (product.isDeleted)
+        if (product.isDeleted == 1)
         {
             strcpy(productIsDeleted, "true");
         }

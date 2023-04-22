@@ -89,11 +89,11 @@ void handleProductsFileCreation()
             float price;
         */
         struct Product products[5] = {
-            {1, "Nirma", "washing", 100, false, 10},
-            {2, "Cube", "fun", 200, false, 100},
-            {3, "Iphone 14", "gadgets", 10, false, 100000},
-            {4, "BluePen", "stationery", 400, false, 5},
-            {5, "Dettol", "health", 500, false, 50},
+            {1, "Nirma", "washing", 100, 0, 10},
+            {2, "Cube", "fun", 200, 0, 100},
+            {3, "Iphone 14", "gadgets", 10, 0, 100000},
+            {4, "BluePen", "stationery", 400, 0, 5},
+            {5, "Dettol", "health", 500, 0, 50},
         };
         for (int i = 0; i < nProducts; i++)
         {

@@ -25,7 +25,7 @@ void addProduct(int clientSocket, struct Product *product)
     struct Product tempProduct;
     while (read(fd, &tempProduct, sizeof(tempProduct)) > 0)
     {
-        if (strcmp(tempProduct.name, product->name) == 0 && tempProduct.isDeleted == false)
+        if (strcmp(tempProduct.name, product->name) == 0 && tempProduct.isDeleted == 0)
         {
             close(fd);
             sendMessage(clientSocket, "Product already exists");
@@ -45,7 +45,7 @@ void addProduct(int clientSocket, struct Product *product)
     // ! write product
     lseek(fd, 0, SEEK_END);
     product->productId = nProducts;
-    product->isDeleted = false;
+    product->isDeleted = 0;
     write(fd, product, sizeof(*product));
     close(fd);
     // ! unlock record
@@ -67,7 +67,8 @@ void fetchAllProducts(int clientSocket)
     struct Product product;
     while (read(fd, &product, sizeof(product)) > 0)
     {
-        if (product.isDeleted == false)
+        printf("Product details: %d\n", product.productId);
+        if (product.isDeleted == 0)
         {
             printf("Product details: %s\n", product.name);
             if (write(clientSocket, &product, sizeof(product)) < 0)
@@ -104,7 +105,7 @@ void updateProduct(int clientSocket)
     struct Product tempProduct;
     while (read(fd, &tempProduct, sizeof(tempProduct)) > 0)
     {
-        if (tempProduct.productId == product.productId && tempProduct.isDeleted == false)
+        if (tempProduct.productId == product.productId && tempProduct.isDeleted == 0)
         {
             struct Product updatedProductDetails;
             updatedProductDetails.productId = tempProduct.productId;
@@ -184,7 +185,7 @@ void deleteProduct(int clientSocket)
     {
         if (tempProduct.productId == productId && tempProduct.isDeleted == false)
         {
-            tempProduct.isDeleted = true;
+            tempProduct.isDeleted = 1;
             // ! lock record
             if (lockFileRecord(fd, productId) == false)
             {
@@ -264,11 +265,11 @@ void addToCart(int clientSocket, struct User *user)
     lseek(fdProducts, sizeof(nProducts) + ((cartItem.productId - 1) * sizeof(product)), SEEK_SET);
     read(fdProducts, &product, sizeof(product));
     // ! if product already deleted or quantity not available - then return false
-    if (product.isDeleted == true || product.quantityAvailable < cartItem.quantity)
+    if (product.isDeleted == 1 || product.quantityAvailable < cartItem.quantity)
     {
         close(fdCarts);
         close(fdProducts);
-        if (product.isDeleted == true)
+        if (product.isDeleted == 1)
         {
             sendMessage(clientSocket, "Product is deleted.");
         }
@@ -455,7 +456,7 @@ void checkout(int clientSocket, struct User *user)
         struct Product product;
         lseek(fdProducts, sizeof(nProducts) + ((productId - 1) * sizeof(product)), SEEK_SET);
         read(fdProducts, &product, sizeof(product));
-        if (product.quantityAvailable < quantity || product.isDeleted == true)
+        if (product.quantityAvailable < quantity || product.isDeleted == 1)
         {
             close(fdProducts);
             sendMessage(clientSocket, "Products not available. Remove them from cart and try again");

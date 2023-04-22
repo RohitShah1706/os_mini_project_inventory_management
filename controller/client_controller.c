@@ -144,7 +144,7 @@ void updateProduct(int sockfd)
     {
         ft_write_ln(table, "Product name", product.name);
     }
-    if (product.isDeleted == true || product.quantityAvailable == 0)
+    if (product.isDeleted == 1 || product.quantityAvailable == 0)
     {
         ft_write_ln(table, "Product isDeleted", "True");
     }
