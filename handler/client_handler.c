@@ -1,7 +1,5 @@
 #include "client_handler.h"
 
-#include <stdlib.h>
-
 void signUp(int sockfd)
 {
     // ! send signup request to server

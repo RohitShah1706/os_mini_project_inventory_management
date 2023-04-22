@@ -1,7 +1,7 @@
 #ifndef LOCKER_H
 #define LOCKER_H
 
-#include "data.h"
+#include "../data/data.h"
 
 #include <stdio.h>
 #include <stdlib.h>

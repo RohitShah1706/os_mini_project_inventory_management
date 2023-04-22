@@ -1,7 +1,7 @@
 #ifndef CLIENT_HANDLER_H
 #define CLIENT_HANDLER_H
 
-#include "client_controller.h"
+#include "../router/client_router.h"
 
 #include <stdbool.h>
 #include <stdio.h>

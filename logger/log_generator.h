@@ -1,8 +1,8 @@
 #ifndef LOG_GENERATOR_H
 #define LOG_GENERATOR_H
 
-#include "data.h"
-#include "tableFormatters/fort.h"
+#include "../data/data.h"
+#include "../tableFormatters/fort.h"
 
 #include <stdio.h>
 #include <stdlib.h>

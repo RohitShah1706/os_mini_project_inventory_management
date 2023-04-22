@@ -1,4 +1,4 @@
-#include "data.h"
+#include "./data/data.h"
 
 #include <stdio.h>
 #include <stdlib.h>
