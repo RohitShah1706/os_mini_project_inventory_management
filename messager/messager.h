@@ -1,6 +1,8 @@
 #ifndef MESSAGER_H
 #define MESSAGER_H
 
+#include "../tableFormatters/fort.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>

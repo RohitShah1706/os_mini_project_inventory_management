@@ -36,9 +36,11 @@ void addProduct(int sockfd)
     if (status < 0)
     {
         printf("Error in sending product\n");
+        printf("\n");
         exit(1);
     }
     printf("Product sent\n");
+    printf("\n");
     receiveMessage(sockfd);
 }
 
@@ -120,7 +122,7 @@ void updateProduct(int sockfd)
     // print product details
     ft_table_t *table = ft_create_table();
     ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
-    ft_write_ln(table, "Field", "Value");
+    ft_write_ln(table, "fields to be updated", "new value");
     char productIdStr[100];
     sprintf(productIdStr, "%d", product.productId);
     ft_write_ln(table, "Product id", productIdStr);
@@ -142,13 +144,13 @@ void updateProduct(int sockfd)
     {
         ft_write_ln(table, "Product name", product.name);
     }
-    if (product.isDeleted == false)
+    if (product.isDeleted == true || product.quantityAvailable == 0)
     {
-        ft_write_ln(table, "Product isDeleted", "False");
+        ft_write_ln(table, "Product isDeleted", "True");
     }
     else
     {
-        ft_write_ln(table, "Product isDeleted", "True");
+        ft_write_ln(table, "Product isDeleted", "False");
     }
     printf("%s\n", ft_to_string(table));
     ft_destroy_table(table);
@@ -157,6 +159,7 @@ void updateProduct(int sockfd)
     if (status < 0)
     {
         printf("Error in sending product\n");
+        printf("\n");
         exit(1);
     }
     receiveMessage(sockfd);
@@ -171,6 +174,7 @@ void deleteProduct(int sockfd)
     if (status < 0)
     {
         printf("Error in sending product id\n");
+        printf("\n");
         exit(1);
     }
     receiveMessage(sockfd);
@@ -190,6 +194,7 @@ void addProductToCart(int sockfd)
     if (status < 0)
     {
         printf("Error in sending product id\n");
+        printf("\n");
         exit(1);
     }
     receiveMessage(sockfd);
@@ -202,6 +207,7 @@ void showCartItems(int sockfd)
     if (cart.nProducts == 0)
     {
         printf("Cart is empty\n");
+        printf("\n");
         return;
     }
     else
@@ -242,6 +248,7 @@ void updateCartItem(int sockfd)
     if (status < 0)
     {
         printf("Error in sending product id\n");
+        printf("\n");
         exit(1);
     }
     receiveMessage(sockfd);
@@ -254,6 +261,7 @@ void placeOrder(int sockfd)
     if (cart.nProducts == 0)
     {
         printf("Cart is empty. Add products to cart to place order.\n");
+        printf("\n");
         // ! send 0 rs to server to indicate that we are not placing order
         float totalMoney = 0;
         int status = write(sockfd, &totalMoney, sizeof(totalMoney));

@@ -61,4 +61,11 @@ struct Order
     char date[100];
 };
 
+struct Message
+{
+    char data[100];
+    int dataSize;
+    int status;
+};
+
 #endif

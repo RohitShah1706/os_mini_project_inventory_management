@@ -39,11 +39,13 @@ bool login(int sockfd)
     if (status < 0)
     {
         printf("Error in sending user\n");
+        printf("\n");
         exit(1);
     }
     if (read(sockfd, &isLoggedIn, sizeof(isLoggedIn)) < 0)
     {
         printf("Error in reading login status\n");
+        printf("\n");
         exit(1);
     }
     return isLoggedIn;
@@ -81,6 +83,7 @@ void handleServerConnection(int sockfd)
             if (!login(sockfd))
             {
                 printf("Wrong password or email. Try again.\n");
+                printf("\n");
             }
             else
             {
@@ -88,11 +91,13 @@ void handleServerConnection(int sockfd)
                 if (read(sockfd, &user, sizeof(user)) < 0)
                 {
                     printf("Error in reading user details\n");
+                    printf("\n");
                     exit(1);
                 }
                 isLoggedIn = true;
                 isAdmin = user.isAdmin;
                 printf("Login successful\n");
+                printf("\n");
             }
             break;
         case 0:
