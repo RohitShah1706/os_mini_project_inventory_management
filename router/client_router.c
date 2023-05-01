@@ -5,23 +5,28 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
     int choice;
     while (1)
     {
-        printf("0. Logout\n");
-        printf("1. See user details\n");
+        ft_table_t *table = ft_create_table();
+        ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
+        ft_write_ln(table, "Choice", "Choice Details");
+        ft_write_ln(table, "0", "Logout");
+        ft_write_ln(table, "1", "See user details");
         if (*isAdmin == false)
         {
-            printf("2. See all products\n");
-            printf("3. Add product to cart\n");
-            printf("4. See cart items\n");
-            printf("5. Update cart item\n");
-            printf("6. Place order\n");
+            ft_write_ln(table, "2", "See all products");
+            ft_write_ln(table, "3", "Add product to cart");
+            ft_write_ln(table, "4", "See cart items");
+            ft_write_ln(table, "5", "Update cart item");
+            ft_write_ln(table, "6", "Place order");
         }
         if (*isAdmin == true)
         {
-            printf("10. Add a product\n");
-            printf("11. See all products\n");
-            printf("12. Update a product\n");
-            printf("13. Delete a product\n");
+            ft_write_ln(table, "10", "Add a product");
+            ft_write_ln(table, "11", "See all products");
+            ft_write_ln(table, "12", "Update a product");
+            ft_write_ln(table, "13", "Delete a product");
         }
+        printf("%s\n", ft_to_string(table));
+        ft_destroy_table(table);
         printf("Enter your choice: ");
         scanf("%d", &choice);
         if (write(sockfd, &choice, sizeof(choice)) < 0)
@@ -43,7 +48,6 @@ void showUserMenu(int sockfd, struct User *user, bool *isLoggedIn, bool *isAdmin
             if (*isAdmin == false)
             {
                 showAllProducts(sockfd);
-                
             }
             else
             {

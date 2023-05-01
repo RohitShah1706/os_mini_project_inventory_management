@@ -64,9 +64,14 @@ void handleServerConnection(int sockfd)
         {
             showUserMenu(sockfd, &user, &isLoggedIn, &isAdmin);
         }
-        printf("0. Exit\n");
-        printf("1. Sign up\n");
-        printf("2. Login\n");
+        ft_table_t *table = ft_create_table();
+        ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
+        ft_write_ln(table, "Choice", "Choice Details");
+        ft_write_ln(table, "0", "Exit");
+        ft_write_ln(table, "1", "Sign up");
+        ft_write_ln(table, "2", "Login");
+        printf("%s\n", ft_to_string(table));
+        ft_destroy_table(table);
         printf("Enter choice: ");
         scanf("%d", &choice);
         if (write(sockfd, &choice, sizeof(choice)) < 0)
