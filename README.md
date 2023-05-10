@@ -38,7 +38,7 @@ This will generate `init`,`server` and `client` executables in the root director
 ![Alt text](screenshots/client_02.png)
 | choice | functionality | screenshot |
 | ------ | ------------------- | ---------- |
-| 0 | Logout | |
+| 0 | Logout | ![Alt text](screenshots/client_choice_0.png) |
 | 1 | See user details | ![Alt text](screenshots/client_choice_1.png) |
 | 2 | See all products | ![Alt text](screenshots/client_choice_2.png) |
 | 3 | Add product to cart | ![Alt text](screenshots/client_choice_3.png) |
@@ -48,14 +48,14 @@ This will generate `init`,`server` and `client` executables in the root director
 
 ## Admin Menu
 
-| choice | functionality     |
-| ------ | ----------------- |
-| 0      | Logout            |
-| 1      | See admin details |
-| 10     | Add a product     |
-| 11     | See all products  |
-| 12     | Update a product  |
-| 13     | Delete a product  |
+| choice | functionality     | screenshot                                          |
+| ------ | ----------------- | --------------------------------------------------- |
+| 0      | Logout            | ![Alt text](screenshots/client_choice_0.png)        |
+| 1      | See admin details | ![Alt text](screenshots/client_choice_1_admin.png)  |
+| 10     | Add a product     | ![Alt text](screenshots/client_choice_10_admin.png) |
+| 11     | See all products  | ![Alt text](screenshots/client_choice_11_admin.png) |
+| 12     | Update a product  | ![Alt text](screenshots/client_choice_12_admin.png) |
+| 13     | Delete a product  | ![Alt text](screenshots/client_choice_13_admin.png) |
 
 ## File structure and design choices
 
