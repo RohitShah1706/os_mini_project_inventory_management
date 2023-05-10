@@ -34,15 +34,17 @@ This will generate `init`,`server` and `client` executables in the root director
 
 ## User Menu
 
-| choice | functionality       |
-| ------ | ------------------- |
-| 0      | Logout              |
-| 1      | See user details    |
-| 2      | See all products    |
-| 3      | Add product to cart |
-| 4      | See cart items      |
-| 5      | Update cart item    |
-| 6      | Place order         |
+![Alt text](screenshots/client_01.png)
+![Alt text](screenshots/client_02.png)
+| choice | functionality | screenshot |
+| ------ | ------------------- | ---------- |
+| 0 | Logout | |
+| 1 | See user details | ![Alt text](screenshots/client_choice_1.png) |
+| 2 | See all products | ![Alt text](screenshots/client_choice_2.png) |
+| 3 | Add product to cart | ![Alt text](screenshots/client_choice_3.png) |
+| 4 | See cart items | ![Alt text](screenshots/client_choice_4.png) |
+| 5 | Update cart item | ![Alt text](screenshots/client_choice_5.png) |
+| 6 | Place order | ![Alt text](screenshots/client_choice_6.png) |
 
 ## Admin Menu
 
