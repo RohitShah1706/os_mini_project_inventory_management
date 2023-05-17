@@ -508,6 +508,15 @@ void checkout(int clientSocket, struct User *user)
         if (paidAmount == 0.0)
         {
             sendMessage(clientSocket, "Cart is empty");
+            // ! unlock all the products that were locked
+            for (int i = 0; i < cart.nProducts; i++)
+            {
+                if (lockedProducts[i] != -1)
+                {
+                    unlockFileRecord(fdProducts, lockedProducts[i]);
+                }
+            }
+            close(fdProducts);
             return;
         }
 
@@ -515,6 +524,15 @@ void checkout(int clientSocket, struct User *user)
         {
             close(fdProducts);
             sendMessage(clientSocket, "Paid amount is less than total amount");
+            // ! unlock all the products that were locked
+            for (int i = 0; i < cart.nProducts; i++)
+            {
+                if (lockedProducts[i] != -1)
+                {
+                    unlockFileRecord(fdProducts, lockedProducts[i]);
+                }
+            }
+            close(fdProducts);
             return;
         }
 
@@ -529,15 +547,17 @@ void checkout(int clientSocket, struct User *user)
             product.quantityAvailable -= quantity;
             lseek(fdProducts, -sizeof(product), SEEK_CUR);
             write(fdProducts, &product, sizeof(product));
+        }
 
-            // ! unlock the product
-            if (unlockFileRecord(fdProducts, productId - 1) == false)
+        // ! unlock all the products that were locked
+        for (int i = 0; i < cart.nProducts; i++)
+        {
+            if (lockedProducts[i] != -1)
             {
-                close(fdProducts);
-                sendMessage(clientSocket, "Error in unlocking product");
-                return;
+                unlockFileRecord(fdProducts, lockedProducts[i]);
             }
         }
+        close(fdProducts);
 
         // ! now update the cart
         fdCarts = openFile(CARTS_FILENAME, O_RDWR);
@@ -549,7 +569,6 @@ void checkout(int clientSocket, struct User *user)
         lseek(fdCarts, -sizeof(cart), SEEK_CUR);
         write(fdCarts, &cart, sizeof(cart));
         close(fdCarts);
-        close(fdProducts);
         sendMessage(clientSocket, "Checkout successful");
     }
 }
