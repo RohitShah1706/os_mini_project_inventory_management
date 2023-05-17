@@ -37,10 +37,6 @@ void receiveMessage(int sockfd)
         printf("Error in reading message\n");
         exit(1);
     }
-    // for (int i = 0; i < sizeMsg; i++)
-    // {
-    //     printf("%c", message[i]);
-    // }
     ft_table_t *table = ft_create_table();
     ft_set_cell_prop(table, 0, FT_ANY_COLUMN, FT_CPROP_ROW_TYPE, FT_ROW_HEADER);
     char sizeMsgStr[1000];

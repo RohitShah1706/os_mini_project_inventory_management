@@ -420,17 +420,9 @@ void checkout(int clientSocket, struct User *user)
 {
     // ! first show the cart
     showCart(clientSocket, user);
+    printf("Cart shown\n");
 
-    // ! then ask for the total amount
-    float paidAmount = 0;
-    read(clientSocket, &paidAmount, sizeof(paidAmount));
-
-    if (paidAmount == 0.0)
-    {
-        sendMessage(clientSocket, "Cart is empty");
-        return;
-    }
-
+    // ! try to lock the required products
     int cartId = user->userId;
     int fdCarts = openFile(CARTS_FILENAME, O_RDWR);
     lseek(fdCarts, 0, SEEK_SET);
@@ -447,6 +439,7 @@ void checkout(int clientSocket, struct User *user)
     read(fdProducts, &nProducts, sizeof(nProducts));
     // ! first check if all the products are available
     float totalAmount = 0.0;
+    printf("Checking if products are available\n");
     for (int i = 0; i < cart.nProducts; i++)
     {
         int productId = cart.productIds[i];
@@ -460,18 +453,20 @@ void checkout(int clientSocket, struct User *user)
         {
             close(fdProducts);
             sendMessage(clientSocket, "Products not available. Remove them from cart and try again");
+            printf("Products not available. Remove them from cart and try again\n");
             return;
         }
     }
-
-    if (paidAmount < totalAmount)
+    printf("Products are available\n");
+    bool isError = false;
+    int lockedProducts[cart.nProducts];
+    // ! default value is -1
+    for (int i = 0; i < cart.nProducts; i++)
     {
-        close(fdProducts);
-        sendMessage(clientSocket, "Paid amount is less than total amount");
-        return;
+        lockedProducts[i] = -1;
     }
-
-    // ! now update the products
+    printf("Locking the products now\n");
+    // ! update the products - by locking each product in the cart
     for (int i = 0; i < cart.nProducts; i++)
     {
         int productId = cart.productIds[i];
@@ -482,32 +477,79 @@ void checkout(int clientSocket, struct User *user)
         {
             close(fdProducts);
             sendMessage(clientSocket, "Error in locking product");
+            printf("Error in locking product\n");
+            isError = true;
+            break;
+        }
+        lockedProducts[i] = productId - 1;
+    }
+    if (isError == true)
+    {
+        printf("Error is true\n");
+        // ! unlock all the products that were locked
+        for (int i = 0; i < cart.nProducts; i++)
+        {
+            if (lockedProducts[i] != -1)
+            {
+                unlockFileRecord(fdProducts, lockedProducts[i]);
+            }
+        }
+        close(fdProducts);
+    }
+    else
+    {
+        sendMessage(clientSocket, "success");
+        printf("Error is false\n");
+
+        // ! then ask for the total amount
+        float paidAmount = 0;
+        read(clientSocket, &paidAmount, sizeof(paidAmount));
+
+        if (paidAmount == 0.0)
+        {
+            sendMessage(clientSocket, "Cart is empty");
             return;
         }
-        lseek(fdProducts, sizeof(nProducts) + ((productId - 1) * sizeof(product)), SEEK_SET);
-        read(fdProducts, &product, sizeof(product));
-        product.quantityAvailable -= quantity;
-        lseek(fdProducts, -sizeof(product), SEEK_CUR);
-        write(fdProducts, &product, sizeof(product));
 
-        // ! unlock the product
-        if (unlockFileRecord(fdProducts, productId - 1) == false)
+        if (paidAmount < totalAmount)
         {
             close(fdProducts);
-            sendMessage(clientSocket, "Error in unlocking product");
+            sendMessage(clientSocket, "Paid amount is less than total amount");
             return;
         }
+
+        // ! now update the products directly since those products are already locked
+        for (int i = 0; i < cart.nProducts; i++)
+        {
+            int productId = cart.productIds[i];
+            int quantity = cart.quantities[i];
+            struct Product product;
+            lseek(fdProducts, sizeof(nProducts) + ((productId - 1) * sizeof(product)), SEEK_SET);
+            read(fdProducts, &product, sizeof(product));
+            product.quantityAvailable -= quantity;
+            lseek(fdProducts, -sizeof(product), SEEK_CUR);
+            write(fdProducts, &product, sizeof(product));
+
+            // ! unlock the product
+            if (unlockFileRecord(fdProducts, productId - 1) == false)
+            {
+                close(fdProducts);
+                sendMessage(clientSocket, "Error in unlocking product");
+                return;
+            }
+        }
+
+        // ! now update the cart
+        fdCarts = openFile(CARTS_FILENAME, O_RDWR);
+        lseek(fdCarts, 0, SEEK_SET);
+        read(fdCarts, &nCarts, sizeof(nCarts));
+        lseek(fdCarts, sizeof(nCarts) + ((cartId - 1) * sizeof(cart)), SEEK_SET);
+        read(fdCarts, &cart, sizeof(cart));
+        cart.nProducts = 0;
+        lseek(fdCarts, -sizeof(cart), SEEK_CUR);
+        write(fdCarts, &cart, sizeof(cart));
+        close(fdCarts);
+        close(fdProducts);
+        sendMessage(clientSocket, "Checkout successful");
     }
-    close(fdProducts);
-    // ! now update the cart
-    fdCarts = openFile(CARTS_FILENAME, O_RDWR);
-    lseek(fdCarts, 0, SEEK_SET);
-    read(fdCarts, &nCarts, sizeof(nCarts));
-    lseek(fdCarts, sizeof(nCarts) + ((cartId - 1) * sizeof(cart)), SEEK_SET);
-    read(fdCarts, &cart, sizeof(cart));
-    cart.nProducts = 0;
-    lseek(fdCarts, -sizeof(cart), SEEK_CUR);
-    write(fdCarts, &cart, sizeof(cart));
-    close(fdCarts);
-    sendMessage(clientSocket, "Checkout successful");
 }

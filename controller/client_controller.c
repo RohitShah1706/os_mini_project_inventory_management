@@ -296,11 +296,36 @@ void placeOrder(int sockfd)
         clientLog(cart.userId, table);
         ft_destroy_table(table);
 
+        // ! read message to find if locking was successful
+        int sizeMsg = 0;
+        int status = read(sockfd, &sizeMsg, sizeof(sizeMsg));
+        if (status < 0)
+        {
+            printf("Error in reading message\n");
+            exit(1);
+        }
+        printf("Size of message: %d\n", sizeMsg);
+        // ! then read the message
+        char message[1024];
+        status = read(sockfd, message, sizeMsg);
+        if (status < 0)
+        {
+            printf("Error in reading message\n");
+            exit(1);
+        }
+        printf("Message received from server: %s\n", message);
+        // ! check if locking was successful - by checking if message starts with "success"
+        if (strncmp(message, "success", 7) != 0)
+        {
+            printf("Locking failed. Try again later.\n");
+            return;
+        }
+
         // ! take money from user
         float totalMoney = 0;
         printf("Enter total money to pay: ");
         scanf("%f", &totalMoney);
-        int status = write(sockfd, &totalMoney, sizeof(totalMoney));
+        status = write(sockfd, &totalMoney, sizeof(totalMoney));
         receiveMessage(sockfd);
     }
 }
